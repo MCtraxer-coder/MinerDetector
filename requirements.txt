@@ -1,0 +1,5 @@
+psutil
+customtkinter
+pywin32
+pygetwindow
+send2trash
