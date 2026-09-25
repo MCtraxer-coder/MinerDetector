@@ -190,7 +190,7 @@ def cleanup_old(days: int = 30):
     cursor = conn.cursor()
     cursor.execute("""
         DELETE FROM processes
-        WHERE snapchot_at < datetime('now', ?)
+        WHERE snapshot_at < datetime('now', ?)
     """, (f"-{days} days",))
     cursor.execute("""
         DELETE FROM connections
