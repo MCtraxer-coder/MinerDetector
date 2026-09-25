@@ -103,7 +103,7 @@ def save_event(event_type: str, pid: int = None, name: str = None,
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO events (event_type, pid, name, path, details)
-        VAlUES (?,?,?,?,?)""", (event_type, pid, name, path, details))
+        VALUES (?,?,?,?,?)""", (event_type, pid, name, path, details))
     conn.commit()
     conn.close()
 def save_startup_entry(source: str, name: str, path: str,
