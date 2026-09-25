@@ -1,6 +1,6 @@
 from pathlib import Path
 PROJECT_DIR = Path(__file__).parent
-DB_PATH = PROJECT_DIR / "miner_detector.db"
+DB_PATH = str(PROJECT_DIR / "miner_detector.db")
 LOG_PATH = PROJECT_DIR / "derector.log"
 
 MONITOR_INTERVAL = 5
