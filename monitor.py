@@ -1,6 +1,7 @@
 import psutil
 import time
 from config import PROTECTED_PROCESSES
+
 def get_processes() -> list:
     processes = []
     for proc in psutil.process_iter(['pid']):
@@ -31,7 +32,8 @@ def get_processes() -> list:
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             continue
     return processes
-def get_process_info(pid: int) -> dict:
+    
+def get_process_info(pid: int) -> dict | None:
     try:
         proc = psutil.Process(pid)
         info = proc.as_dict(attrs=[
@@ -55,6 +57,7 @@ def get_process_info(pid: int) -> dict:
         }
     except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
         return None
+        
 def kill_process(pid: int) -> dict:
     try:
         proc = psutil.Process(pid)
@@ -77,6 +80,7 @@ def kill_process(pid: int) -> dict:
         return {"success": False, "error": "Нет прав для убийства процесса (нужен админ)"}
     except Exception as e:
         return {"success": False, "error": str(e)}
+        
 def get_process_connections(pid: int) -> list:
     connections = []
 
