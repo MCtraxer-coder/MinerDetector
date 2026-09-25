@@ -1,11 +1,3 @@
-"""
-gui.py — интерфейс детектора майнеров.
-
-Три вкладки:
-- Процессы     — таблица процессов с score и флагами.
-- Автозагрузка — записи автозагрузки + кнопка «Отключить».
-- Сеть         — сетевые соединения + флаги майнинг-пулов.
-"""
 
 import customtkinter as ctk
 from tkinter import ttk, messagebox
@@ -23,9 +15,6 @@ from db import (
     save_event,
     get_top_suspicious,
 )
-
-
-# ============ ЦВЕТА ============
 
 BG_COLOR = "#000000"
 FG_COLOR = "#ffffff"
@@ -54,14 +43,11 @@ class MinerDetectorApp(ctk.CTk):
         self.monitoring = False
         self.monitor_thread = None
 
-        # Карты: ID строки → данные
         self.pid_by_item_id = {}
-        self.kill_callback_by_item_id = {}   # для автозагрузки
+        self.kill_callback_by_item_id = {}   
 
-        # --- Стиль таблиц ---
         self._setup_tree_style()
 
-        # --- Верхняя панель (кнопки) ---
         self.top_frame = ctk.CTkFrame(self, fg_color=FRAME_COLOR)
         self.top_frame.pack(fill="x", padx=10, pady=10)
 
@@ -106,7 +92,6 @@ class MinerDetectorApp(ctk.CTk):
         )
         self.kill_button.pack(side="left", padx=5)
 
-        # --- Вкладки ---
         self.tabs = ctk.CTkTabview(
             self,
             fg_color=FRAME_COLOR,
@@ -117,21 +102,16 @@ class MinerDetectorApp(ctk.CTk):
         )
         self.tabs.pack(fill="both", expand=True, padx=10, pady=(0, 10))
 
-        # Создаём вкладки
         self.tabs.add("Процессы")
         self.tabs.add("Автозагрузка")
         self.tabs.add("Сеть")
 
-        # --- Вкладка: Процессы ---
         self._build_processes_tab()
 
-        # --- Вкладка: Автозагрузка ---
         self._build_startup_tab()
 
-        # --- Вкладка: Сеть ---
         self._build_network_tab()
 
-        # --- Статус ---
         self.status_label = ctk.CTkLabel(
             self,
             text="Готов. Нажми «Запустить мониторинг».",
@@ -141,10 +121,7 @@ class MinerDetectorApp(ctk.CTk):
         )
         self.status_label.pack(fill="x", padx=10, pady=(0, 10))
 
-        # Инициализация БД
         init_db()
-
-    # ============ СТИЛЬ ТАБЛИЦ ============
 
     def _setup_tree_style(self):
         style = ttk.Style()
@@ -182,8 +159,6 @@ class MinerDetectorApp(ctk.CTk):
             bordercolor=BG_COLOR,
             arrowcolor=FG_COLOR,
         )
-
-    # ============ ВКЛАДКА: ПРОЦЕССЫ ============
 
     def _build_processes_tab(self):
         tab = self.tabs.tab("Процессы")
@@ -245,7 +220,6 @@ class MinerDetectorApp(ctk.CTk):
         self.tree_processes.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
-        # Привязка: клик на строку → запоминаем PID
         self.tree_processes.bind("<<TreeviewSelect>>", self._on_process_select)
 
     def _on_process_select(self, event):
@@ -266,7 +240,6 @@ class MinerDetectorApp(ctk.CTk):
         if self.only_suspicious.get():
             rows = [r for r in rows if r["score"] > 0]
 
-        # Убираем дубликаты по PID (берём последний снимок)
         seen_pids = set()
         unique_rows = []
         for r in rows:
@@ -300,12 +273,9 @@ class MinerDetectorApp(ctk.CTk):
 
             self.pid_by_item_id[item_id] = r["pid"]
 
-    # ============ ВКЛАДКА: АВТОЗАГРУЗКА ============
-
     def _build_startup_tab(self):
         tab = self.tabs.tab("Автозагрузка")
 
-        # Кнопка обновить
         btn_frame = ctk.CTkFrame(tab, fg_color=FRAME_COLOR)
         btn_frame.pack(fill="x", padx=5, pady=5)
 
@@ -365,13 +335,11 @@ class MinerDetectorApp(ctk.CTk):
         self.tree_startup.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
-        # Карта: item_id → запись
         self.startup_entries = {}
 
     def refresh_startup(self):
         self.status_label.configure(text="Сканирую автозагрузку...")
 
-        # Собираем в отдельном потоке (может тормозить)
         threading.Thread(target=self._run_startup_scan, daemon=True).start()
 
     def _run_startup_scan(self):
@@ -433,7 +401,6 @@ class MinerDetectorApp(ctk.CTk):
         source = entry.get("source", "")
         name = entry.get("name", "")
 
-        # Отключение: только для реестра (пока)
         if source == "registry_hkcu":
             confirmed = messagebox.askyesno(
                 "Подтверждение",
@@ -461,12 +428,9 @@ class MinerDetectorApp(ctk.CTk):
                 f"Отключи вручную через Диспетчер задач → Автозагрузка.",
             )
 
-    # ============ ВКЛАДКА: СЕТЬ ============
-
     def _build_network_tab(self):
         tab = self.tabs.tab("Сеть")
 
-        # Кнопка обновить
         btn_frame = ctk.CTkFrame(tab, fg_color=FRAME_COLOR)
         btn_frame.pack(fill="x", padx=5, pady=5)
 
@@ -491,7 +455,6 @@ class MinerDetectorApp(ctk.CTk):
             command=self.refresh_network,
         ).pack(side="left", padx=15)
 
-        # Таблица
         table_frame = ctk.CTkFrame(tab, fg_color=FRAME_COLOR)
         table_frame.pack(fill="both", expand=True, padx=5, pady=5)
 
@@ -547,7 +510,6 @@ class MinerDetectorApp(ctk.CTk):
         if self.only_pools.get():
             conns = [c for c in conns if c["is_mining_pool"]]
 
-        # Сортируем: сначала пулы
         conns.sort(key=lambda c: (not c["is_mining_pool"], c["pid"]))
 
         for c in conns[:500]:
@@ -565,8 +527,6 @@ class MinerDetectorApp(ctk.CTk):
             ), tags=(tag,))
 
         self.status_label.configure(text=f"Соединений: {len(conns)}")
-
-    # ============ МОНИТОРИНГ ============
 
     def on_start_monitoring(self):
         if self.monitoring:
@@ -610,14 +570,10 @@ class MinerDetectorApp(ctk.CTk):
 
             time.sleep(MONITOR_INTERVAL)
 
-    # ============ ОБНОВЛЕНИЕ ВСЕГО ============
-
     def refresh_all(self):
         self.refresh_processes()
         self.refresh_startup()
         self.refresh_network()
-
-    # ============ УБИЙСТВО ============
 
     def on_kill_process(self):
         selected = self.tree_processes.selection()
@@ -648,8 +604,6 @@ class MinerDetectorApp(ctk.CTk):
             self.refresh_processes()
         else:
             messagebox.showerror("Ошибка", result["error"])
-
-    # ============ ЗАКРЫТИЕ ============
 
     def on_closing(self):
         self.monitoring = False
