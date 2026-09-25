@@ -1,10 +1,11 @@
-
+import threading
 import psutil
 import socket
 
 from config import MINING_PORTS, MINING_POOL_DOMAINS
 
 _dns_cache = {}
+_dns_lock = threading.Lock()
 
 def get_all_connections() -> list:
 
